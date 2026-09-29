@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aegis - Distributed Rate Limiter & Concurrency Defense System</title>
+  <meta name="description" content="Next-Gen Distributed Rate Limiter Service with real-time physics simulations, Redis atomic Lua orchestration, multi-algorithm visualization, and telemetry.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/web/styles.css">
+</head>
+<body class="cyber-theme">
+  <!-- Interactive Matrix & Particle Background -->
+  <canvas id="bg-particle-canvas"></canvas>
+  <div class="hud-scanline"></div>
+  <div class="ambient-glows">
+    <div class="glow-spot spot-cyan"></div>
+    <div class="glow-spot spot-violet"></div>
+    <div class="glow-spot spot-crimson"></div>
+  </div>
+
+  <div class="app-layout">
+    <!-- TOP NAVIGATION HUD -->
+    <header class="hud-header">
+      <div class="header-left">
+        <div class="shield-logo">
+          <div class="shield-ring outer-ring"></div>
+          <div class="shield-ring inner-ring"></div>
+          <span class="shield-core">⚡</span>
+        </div>
+        <div class="brand-text">
+          <div class="brand-heading">
+            <span class="brand-name">AEGIS // RATE LIMITER</span>
+            <span class="badge-pill badge-live"><span class="pulse-indicator"></span> DISTRIBUTED CLUSTER</span>
+          </div>
+          <div class="brand-sub">High-Throughput Sub-Millisecond Distributed Ingress Protection</div>
+        </div>
+      </div>
+
+      <!-- Live Cluster Stats Bar -->
+      <div class="cluster-status-bar">
+        <div class="status-node">
+          <span class="node-label">ENGINE TIER</span>
+          <span class="node-val text-cyan" id="cluster-tier">L1 In-Memory + L2 Redis</span>
+        </div>
+        <div class="status-divider"></div>
+        <div class="status-node">
+          <span class="node-label">REDIS LUA</span>
+          <span class="node-val text-emerald">ATOMIC SHA CACHED</span>
+        </div>
+        <div class="status-divider"></div>
+        <div class="status-node">
+          <span class="node-label">AUDIO FEEDBACK</span>
+          <button type="button" class="btn-audio" id="btn-toggle-audio" title="Toggle Futuristic SFX Audio">
+            <span id="audio-icon">🔇</span> <span id="audio-status">MUTED</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <a href="/metrics" target="_blank" class="cyber-btn btn-sm">
+          <span class="btn-icon">📊</span> PROMETHEUS
+        </a>
+        <a href="/healthz" target="_blank" class="cyber-btn btn-sm">
+          <span class="btn-icon">🩺</span> HEALTH
+        </a>
+      </div>
+    </header>
+
+    <!-- LIVE TELEMETRY HERO RIBBON -->
+    <section class="telemetry-ribbon">
+      <div class="ribbon-card card-cyan">
+        <div class="card-glow-edge"></div>
+        <div class="ribbon-head">
+          <span class="ribbon-label">INSTANTANEOUS THROUGHPUT</span>
+          <span class="ribbon-chip">REALTIME</span>
+        </div>
+        <div class="ribbon-val-row">
+          <span class="ribbon-val" id="kpi-rps">0</span>
+          <span class="ribbon-unit">REQ / SEC</span>
+        </div>
+        <div class="ribbon-progress-track">
+          <div class="ribbon-progress-bar bar-cyan" id="track-rps" style="width: 5%;"></div>
+        </div>
+        <div class="ribbon-foot">
+          <span>Max Benchmarked: <strong class="text-cyan">10,000+ rps</strong></span>
+        </div>
+      </div>
+
+      <div class="ribbon-card card-emerald">
+        <div class="card-glow-edge"></div>
+        <div class="ribbon-head">
+          <span class="ribbon-label">PERMITTED INGRESS (200 OK)</span>
+          <span class="ribbon-chip text-emerald">CLEARED</span>
+        </div>
+        <div class="ribbon-val-row">
+          <span class="ribbon-val text-emerald" id="kpi-allowed">0</span>
+          <span class="ribbon-unit" id="kpi-allowed-pct">100%</span>
+        </div>
+        <div class="ribbon-progress-track">
+          <div class="ribbon-progress-bar bar-emerald" id="track-allowed" style="width: 100%;"></div>
+        </div>
+        <div class="ribbon-foot">
+          <span>Passed Downstream: <strong class="text-emerald" id="kpi-allowed-sub">0 total</strong></span>
+        </div>
+      </div>
+
+      <div class="ribbon-card card-rose">
+        <div class="card-glow-edge"></div>
+        <div class="ribbon-head">
+          <span class="ribbon-label">DROPPED REQUESTS (429 EXCEEDED)</span>
+          <span class="ribbon-chip text-rose">SHIELDED</span>
+        </div>
+        <div class="ribbon-val-row">
+          <span class="ribbon-val text-rose" id="kpi-blocked">0</span>
+          <span class="ribbon-unit" id="kpi-blocked-pct">0%</span>
+        </div>
+        <div class="ribbon-progress-track">
+          <div class="ribbon-progress-bar bar-rose" id="track-blocked" style="width: 0%;"></div>
+        </div>
+        <div class="ribbon-foot">
+          <span>DDoS Attacks / Spikes Mitigated</span>
+        </div>
+      </div>
+
+      <div class="ribbon-card card-violet">
+        <div class="card-glow-edge"></div>
+        <div class="ribbon-head">
+          <span class="ribbon-label">MEDIAN LATENCY (p50)</span>
+          <span class="ribbon-chip text-violet">SUB-MILLI</span>
+        </div>
+        <div class="ribbon-val-row">
+          <span class="ribbon-val text-violet" id="kpi-latency">0.05</span>
+          <span class="ribbon-unit">MILLISECONDS</span>
+        </div>
+        <div class="ribbon-progress-track">
+          <div class="ribbon-progress-bar bar-violet" id="track-latency" style="width: 15%;"></div>
+        </div>
+        <div class="ribbon-foot">
+          <span>Decision Speed: <strong class="text-violet" id="kpi-latency-us">50 µs</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIVE NETWORK FLOW TOPOLOGY MAP -->
+    <section class="topology-section">
+      <div class="topology-header">
+        <div class="topo-title">
+          <span class="pulse-icon">●</span> DISTRIBUTED PACKET PIPELINE & CONCURRENCY TOPOLOGY
+        </div>
+        <div class="topo-legend">
+          <span class="legend-item"><span class="legend-dot dot-allowed"></span> Allowed Traffic</span>
+          <span class="legend-item"><span class="legend-dot dot-blocked"></span> Rate-Limited Deflected</span>
+          <span class="legend-item"><span class="legend-dot dot-sync"></span> L1/L2 Sync Pulse</span>
+        </div>
+      </div>
+      <div class="topology-canvas-wrap">
+        <canvas id="topo-canvas" height="110"></canvas>
+      </div>
+    </section>
+
+    <!-- MAIN TWO-COLUMN WORKSPACE -->
+    <main class="hud-main-grid">
+      <!-- LEFT COLUMN: CONTROLS, SANDBOX & SCENARIOS -->
+      <div class="left-column">
+        <!-- Control Deck Panel -->
+        <section class="cyber-panel control-deck">
+          <div class="panel-banner">
+            <span class="panel-icon">⚡</span>
+            <span class="panel-title">INTERACTIVE TRAFFIC SYNTHESIZER</span>
+            <span class="panel-tag" id="active-alg-tag">TOKEN BUCKET</span>
+          </div>
+
+          <div class="panel-body">
+            <!-- Client Key Selector -->
+            <div class="input-row">
+              <label for="input-client">CLIENT IDENTIFIER (KEY / IP / API TOKEN)</label>
+              <div class="cyber-input-wrap">
+                <input type="text" id="input-client" value="client_edge_alpha" spellcheck="false">
+                <button type="button" class="input-icon-btn" id="btn-roll-key" title="Randomize Client Key">🎲</button>
+              </div>
+            </div>
+
+            <!-- Algorithm & Client Tier Selectors -->
+            <div class="input-duo">
+              <div class="input-col">
+                <label for="select-alg">DEFENSE ALGORITHM</label>
+                <div class="select-wrap">
+                  <select id="select-alg">
+                    <option value="token_bucket" selected>Token Bucket (Burst Tolerant)</option>
+                    <option value="sliding_window_counter">Sliding Window Counter (O(1))</option>
+                    <option value="sliding_window_log">Sliding Window Log (Exact ZSet)</option>
+                    <option value="leaky_bucket">Leaky Bucket (Smooth Egress)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="input-col">
+                <label for="select-tier">CLIENT TIER PRESET</label>
+                <div class="select-wrap">
+                  <select id="select-tier">
+                    <option value="free">Free Tier (20 Cap / 10 rps)</option>
+                    <option value="pro" selected>Pro Tier (100 Cap / 50 rps)</option>
+                    <option value="enterprise">Enterprise (500 Cap / 250 rps)</option>
+                    <option value="custom">Custom Parameters</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dynamic Slider Controls -->
+            <div class="sliders-box">
+              <div class="slider-field">
+                <div class="slider-info">
+                  <span class="sl-title">BURST CAPACITY / WINDOW LIMIT</span>
+                  <span class="sl-val text-cyan"><span id="val-cap">100</span> TOKENS</span>
+                </div>
+                <input type="range" id="slider-cap" min="10" max="500" value="100" step="5" class="cyber-slider">
+              </div>
+
+              <div class="slider-field">
+                <div class="slider-info">
+                  <span class="sl-title">REFILL RATE VELOCITY</span>
+                  <span class="sl-val text-emerald"><span id="val-rate">50</span> TOKENS / SEC</span>
+                </div>
+                <input type="range" id="slider-rate" min="5" max="300" value="50" step="5" class="cyber-slider">
+              </div>
+            </div>
+
+            <!-- Action Buttons Grid -->
+            <div class="synth-actions-grid">
+              <button type="button" class="synth-btn btn-fire-single" id="btn-fire-1">
+                <span class="btn-flare"></span>
+                <span class="synth-icon">🎯</span>
+                <div class="synth-text">
+                  <span class="st-main">Single Request</span>
+                  <span class="st-sub">Cost: 1 token</span>
+                </div>
+              </button>
+
+              <button type="button" class="synth-btn btn-fire-burst" id="btn-fire-burst">
+                <span class="btn-flare"></span>
+                <span class="synth-icon">⚡</span>
+                <div class="synth-text">
+                  <span class="st-main">Burst 25 Ingress</span>
+                  <span class="st-sub">Instantaneous shock</span>
+                </div>
+              </button>
+
+              <button type="button" class="synth-btn btn-fire-stream" id="btn-fire-stream">
+                <span class="btn-flare"></span>
+                <span class="synth-icon" id="stream-icon">🌊</span>
+                <div class="synth-text">
+                  <span class="st-main" id="stream-label">Sustained Stream</span>
+                  <span class="st-sub" id="stream-sub">Continuous 30 rps</span>
+                </div>
+              </button>
+
+              <button type="button" class="synth-btn btn-fire-ddos" id="btn-fire-ddos">
+                <span class="btn-flare"></span>
+                <span class="synth-icon">💀</span>
+                <div class="synth-text">
+                  <span class="st-main">Simulate DDoS Attack</span>
+                  <span class="st-sub">200 rps shockwave</span>
+                </div>
+              </button>
+            </div>
+
+            <!-- Utility Controls -->
+            <div class="control-footer-actions">
+              <button type="button" class="btn-ghost" id="btn-reset-quota">
+                <span>🔄</span> Reset Current Key Quota
+              </button>
+              <button type="button" class="btn-ghost" id="btn-chaos-storm">
+                <span>🌪️</span> Multi-Tenant Chaos Storm
+              </button>
+              <button type="button" class="btn-ghost" id="btn-clear-logs">
+                <span>🧹</span> Clear Stream Log
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- RIGHT COLUMN: VISUALIZERS (PHYSICS TOKEN BUCKET & RADAR SLIDING WINDOW) -->
+      <div class="right-column">
+        <!-- Visualizer Panel -->
+        <section class="cyber-panel visualizer-deck">
+          <div class="panel-banner">
+            <span class="panel-icon">🔬</span>
+            <span class="panel-title">REAL-TIME ALGORITHM DEFENSE ENGINE</span>
+            
+            <div class="hud-tabs">
+              <button type="button" class="hud-tab active" data-target="tab-token-bucket">
+                <span>🟡</span> TOKEN BUCKET
+              </button>
+              <button type="button" class="hud-tab" data-target="tab-sliding-window">
+                <span>🔵</span> SLIDING WINDOW
+              </button>
+              <button type="button" class="hud-tab" data-target="tab-leaky-bucket">
+                <span>🟢</span> LEAKY BUCKET
+              </button>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <!-- TAB 1: TOKEN BUCKET PHYSICS SIMULATION -->
+            <div class="algo-tab-content" id="tab-token-bucket">
+              <div class="physics-chamber-layout">
+                <!-- 2D Physics Canvas for Token Reservoir -->
+                <div class="canister-wrapper">
+                  <div class="canister-header-glow">
+                    <span class="flow-nozzle-badge">INFLOW NOZZLE (+<span id="txt-refill-rate">50</span>/s)</span>
+                  </div>
+                  <div class="canvas-canister-housing">
+                    <canvas id="token-physics-canvas" width="280" height="340"></canvas>
+                    
+                    <!-- HUD Gauge Overlay Inside Canister -->
+                    <div class="canister-hud-overlay">
+                      <div class="canister-level-num" id="canvas-token-count">100</div>
+                      <div class="canister-level-denom">/ <span id="canvas-token-cap">100</span> TOKENS</div>
+                      <div class="canister-status-badge" id="canvas-badge">STABLE RESERVOIR</div>
+                    </div>
+
+                    <!-- Deflection Forcefield Shockwave Effect -->
+                    <div class="forcefield-shield" id="forcefield-shield">
+                      <span class="shield-text">ACCESS DENIED // 429 FORCEFIELD ACTIVE</span>
+                    </div>
+                  </div>
+                  <div class="canister-footer-glow">
+                    <span class="gate-status" id="gate-status">INGRESS GATE: ARMED</span>
+                  </div>
+                </div>
+
+                <!-- Live Physics & State Metrics Column -->
+                <div class="chamber-diagnostics">
+                  <div class="diag-card">
+                    <span class="diag-title">RESERVOIR LIQUIDITY</span>
+                    <div class="diag-bar-track">
+                      <div class="diag-bar-fill fill-cyan" id="fill-reservoir" style="width: 100%;"></div>
+                    </div>
+                    <div class="diag-sub">
+                      <span>Available: <strong class="text-cyan" id="diag-tokens-avail">100.0</strong></span>
+                      <span id="diag-tokens-pct">100%</span>
+                    </div>
+                  </div>
+
+                  <div class="diag-card">
+                    <span class="diag-title">ATOMIC REFILL ACCELERATION</span>
+                    <div class="diag-stat-row">
+                      <span class="diag-stat text-emerald" id="diag-refill-calc">+50.00 / sec</span>
+                      <span class="diag-tag">CONTINUOUS</span>
+                    </div>
+                    <div class="diag-sub">
+                      <span>Precision: <strong class="text-emerald">Sub-Microsecond Clock</strong></span>
+                    </div>
+                  </div>
+
+                  <div class="diag-card">
+                    <span class="diag-title">TIME UNTIL FULL RECOVERY</span>
+                    <div class="diag-stat-row">
+                      <span class="diag-stat text-amber" id="diag-time-to-fill">0.00 s</span>
+                      <span class="diag-tag" id="diag-fill-state">READY</span>
+                    </div>
+                    <div class="diag-sub">
+                      <span>Calculated via: <code>(Capacity - Tokens) / Rate</code></span>
+                    </div>
+                  </div>
+
+                  <div class="diag-card">
+                    <span class="diag-title">CONCURRENCY MUTEX & REDIS SHA</span>
+                    <div class="diag-stat-row">
+                      <span class="diag-stat text-purple" id="diag-lua-status">EVALSHA // LOCKLESS</span>
+                      <span class="diag-tag">100% ATOMIC</span>
+                    </div>
+                    <div class="diag-sub">
+                      <span>Zero race conditions across distributed nodes</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 2: SLIDING WINDOW RADAR & TIMELINE -->
+            <div class="algo-tab-content hidden" id="tab-sliding-window">
+              <div class="sliding-window-deck">
+                <div class="sw-header-info">
+                  <div class="sw-badge-title">HYBRID SLIDING WINDOW COUNTER (Cloudflare / Stripe Model)</div>
+                  <div class="sw-stats-summary">
+                    <span>Window Duration: <strong>1,000 ms</strong></span>
+                    <span>Window Count: <strong class="text-cyan" id="sw-count-val">0</strong> / <span id="sw-limit-val">100</span></span>
+                  </div>
+                </div>
+
+                <!-- Real-time Oscilloscope / Timeline Canvas -->
+                <div class="sw-canvas-wrap">
+                  <canvas id="sw-timeline-canvas" height="150"></canvas>
+                </div>
+
+                <!-- Mathematical Breakdown Card -->
+                <div class="sw-math-box">
+                  <div class="math-header">
+                    <span class="math-icon">📐</span> O(1) Mathematical Interpolation Formula
+                  </div>
+                  <div class="math-formula">
+                    Requests = Count(PreviousWindow) &times; [ (Window - Elapsed) / Window ] + Count(CurrentWindow)
+                  </div>
+                  <div class="math-live-row" id="sw-live-formula">
+                    <span>Current Slice: <strong class="text-cyan" id="sw-curr-slice">0 reqs</strong></span>
+                    <span>Prev Slice Weight: <strong class="text-emerald" id="sw-prev-weight">50%</strong></span>
+                    <span>Estimated In-Flight: <strong class="text-violet" id="sw-estimated">0 reqs</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 3: LEAKY BUCKET CONSTANT DRAIN -->
+            <div class="algo-tab-content hidden" id="tab-leaky-bucket">
+              <div class="leaky-bucket-deck">
+                <div class="leaky-info-bar">
+                  <span>Queue Capacity: <strong class="text-cyan" id="lb-cap">100</strong> units</span>
+                  <span>Constant Leak Outflow: <strong class="text-emerald" id="lb-leak">50</strong> req/sec</span>
+                  <span>Queue Status: <strong class="text-amber" id="lb-status">NOMINAL</strong></span>
+                </div>
+                <div class="lb-canvas-wrap">
+                  <canvas id="lb-drain-canvas" height="180"></canvas>
+                </div>
+                <div class="lb-footer-explainer">
+                  <span>🛡️ <strong>Traffic Shaping Guarantee:</strong> Downstream services receive a completely smooth, jitter-free flow. Sudden spikes are queued and drained at a perfectly constant speed.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- REAL-TIME THROUGHPUT & LATENCY OSCILLOSCOPE DUAL CHART -->
+    <section class="cyber-panel chart-deck">
+      <div class="panel-banner">
+        <span class="panel-icon">📈</span>
+        <span class="panel-title">TELEMETRY OSCILLOSCOPE (THROUGHPUT & SUB-MILLI LATENCY SPECTRUM)</span>
+        <div class="chart-controls">
+          <span class="chart-legend-chip chip-allowed"><span class="chip-dot"></span> Allowed (200 OK)</span>
+          <span class="chart-legend-chip chip-blocked"><span class="chip-dot"></span> 429 Rate-Limited</span>
+          <span class="chart-legend-chip chip-latency"><span class="chip-dot"></span> Latency (µs)</span>
+          <span class="live-stream-badge"><span class="pulse-emerald"></span> STREAMING 60 FPS</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="oscilloscope-wrap">
+          <canvas id="oscilloscope-canvas" height="150"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIVE DECISION EVENT STREAM LOG CONSOLE -->
+    <section class="cyber-panel log-deck">
+      <div class="panel-banner">
+        <div class="log-banner-left">
+          <span class="panel-icon">💻</span>
+          <span class="panel-title">HIGH-FREQUENCY AUDIT STREAM & RATE-LIMIT HEADERS</span>
+        </div>
+        <div class="log-banner-right">
+          <span class="log-filter-btn active" data-filter="all">ALL</span>
+          <span class="log-filter-btn" data-filter="allowed">ALLOWED (200)</span>
+          <span class="log-filter-btn" data-filter="blocked">BLOCKED (429)</span>
+          <span class="badge-tag">AUTO-SCROLL</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="terminal-log-console" id="terminal-stream">
+          <!-- Live log lines injected by app.js -->
+          <div class="terminal-row row-system">
+            <span class="row-ts">[SYSTEM_BOOT]</span>
+            <span class="row-badge badge-sys">AEGIS_INIT</span>
+            <span class="row-content">Distributed High-Throughput Rate Limiter cluster initialized. Redis Lua engine preloaded.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER HUD -->
+    <footer class="hud-footer">
+      <div class="footer-left">
+        <span>AEGIS DISTRIBUTED RATE LIMITER v1.0.0 &bull; ARCHITECTURE: GO / PYTHON + REDIS LUA + GRPC & REST</span>
+      </div>
+      <div class="footer-right">
+        <span>STATUS: <strong class="text-emerald">ACTIVE & ARMED</strong> &bull; LATENCY GUARANTEE: <strong class="text-cyan">&lt; 1.0 MS</strong></span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/web/app.js"></script>
+</body>
+</html>

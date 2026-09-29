@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  # 1. High-Throughput Distributed Rate Limiter
+  rate-limiter:
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile
+    container_name: rate-limiter-service
+    ports:
+      - "8080:8080"   # HTTP REST, Prometheus metrics, Live Web Dashboard
+      - "50051:50051" # gRPC Interface
+    environment:
+      - HTTP_PORT=8080
+      - GRPC_PORT=50051
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_POOL_SIZE=256
+      - DEFAULT_ALGORITHM=token_bucket
+      - DEFAULT_CAPACITY=100
+      - DEFAULT_RATE=100.0
+      - ENABLE_L1_CACHE=true
+      - L1_BATCH_SIZE=20
+      - L1_CACHE_TTL_MS=500
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - limiter-net
+
+  # 2. Redis Cluster / Primary Node with in-memory persistence and high concurrency
+  redis:
+    image: redis:7.2-alpine
+    container_name: rate-limiter-redis
+    command: >
+      redis-server
+      --save ""
+      --appendonly no
+      --maxmemory 512mb
+      --maxmemory-policy volatile-lru
+      --tcp-backlog 2048
+      --tcp-keepalive 60
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 2s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - limiter-net
+
+  # 3. Prometheus Telemetry Engine
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: rate-limiter-prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=24h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - limiter-net
+
+  # 4. Grafana Dashboards & Visualization
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: rate-limiter-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - limiter-net
+
+  # 5. k6 Load Testing Generator (Run with: docker compose run --rm k6)
+  k6:
+    image: grafana/k6:0.51.0
+    container_name: rate-limiter-k6
+    volumes:
+      - ../benchmarks:/benchmarks:ro
+    entrypoint: ["k6", "run", "/benchmarks/k6-load-test.js"]
+    networks:
+      - limiter-net
+    profiles:
+      - testing
+
+networks:
+  limiter-net:
+    driver: bridge
