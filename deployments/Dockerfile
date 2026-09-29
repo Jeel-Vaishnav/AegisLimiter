@@ -20,7 +20,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     cmd/server/main.go
 
 # Production Minimal Stage
-FROM alpine:3.20
+FROM alpine:3.24
 
 WORKDIR /app
 
