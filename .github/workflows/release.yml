@@ -35,7 +35,7 @@ jobs:
           GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-w -s -X main.version=${{ github.ref_name }}" -o dist/aegislimiter-windows-amd64.exe cmd/server/main.go
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: AegisLimiter ${{ github.ref_name }}
           draft: false
