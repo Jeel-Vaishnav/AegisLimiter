@@ -1,0 +1,59 @@
+name: CI / Test & Build
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build & Test (Go 1.22)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Verify Dependencies
+        run: |
+          go mod verify
+
+      - name: Build Binary
+        run: |
+          go build -v -ldflags="-w -s" -o bin/ratelimiter cmd/server/main.go
+
+      - name: Run Unit Tests with Race Detector
+        run: |
+          go test -v -race -coverprofile=coverage.out ./tests/...
+
+      - name: Run Microbenchmarks
+        run: |
+          go test -bench=. -benchmem ./tests/...
+
+  docker-lint:
+    name: Dockerfile Lint & Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: actions/setup-buildx-action@v3
+
+      - name: Build Docker Container
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./deployments/Dockerfile
+          push: false
+          tags: aegis-rate-limiter:test

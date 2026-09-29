@@ -1,0 +1,51 @@
+name: 🐛 Bug Report
+description: Report a reproducible bug or unexpected rate-limiting behavior
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for reporting an issue! Please provide as much detail as possible.
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: What runtime or architecture are you running on? (e.g. Go 1.22, Docker, Redis 7.2)
+      placeholder: e.g. Docker Compose, Go 1.22, Redis 7.2 on Linux AMD64
+    validations:
+      required: true
+  - type: dropdown
+    id: algorithm
+    attributes:
+      label: Rate Limiting Algorithm
+      description: Which algorithm exhibited the bug?
+      options:
+        - Token Bucket
+        - Sliding Window Counter
+        - Sliding Window Log
+        - Leaky Bucket
+        - Tiered L1/L2 Caching
+        - gRPC Server
+        - REST API
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened? (Include error logs or HTTP response headers)
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Minimal commands or curl requests to reproduce the issue.
+    validations:
+      required: true

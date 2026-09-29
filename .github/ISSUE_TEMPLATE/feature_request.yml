@@ -1,0 +1,26 @@
+name: 💡 Feature Request
+description: Propose a new rate limiting algorithm, driver, or observability integration
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: Have an idea to make AegisLimiter faster or more powerful? Let us know!
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Limitation
+      description: Is your feature request related to a specific bottleneck or use case?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Clear and concise description of what you want to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or workarounds you've evaluated.

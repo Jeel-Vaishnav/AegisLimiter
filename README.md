@@ -1,10 +1,12 @@
 # 🛡️ AegisLimiter: High-Throughput Distributed Rate Limiter Service
 
-[![GitHub Repository](https://img.shields.io/badge/GitHub-Jeel--Vaishnav%2FAegisLimiter-181717?style=for-the-badge&logo=github)](https://github.com/Jeel-Vaishnav/AegisLimiter)
-[![Architecture](https://img.shields.io/badge/Architecture-Distributed%20Systems-00f2fe?style=for-the-badge)](https://github.com/Jeel-Vaishnav/AegisLimiter)
-[![Stack](https://img.shields.io/badge/Stack-Go%20%7C%20Redis%20Lua%20%7C%20gRPC-8b5cf6?style=for-the-badge)](https://github.com/Jeel-Vaishnav/AegisLimiter)
-[![Throughput](https://img.shields.io/badge/Throughput-10%2C000%2B%20RPS%20%28%3C1ms%29-10b981?style=for-the-badge)](https://github.com/Jeel-Vaishnav/AegisLimiter)
-[![Telemetry](https://img.shields.io/badge/Telemetry-Prometheus%20%2B%20Grafana-f43f5e?style=for-the-badge)](https://github.com/Jeel-Vaishnav/AegisLimiter)
+[![CI Build](https://github.com/Jeel-Vaishnav/AegisLimiter/actions/workflows/ci.yml/badge.svg)](https://github.com/Jeel-Vaishnav/AegisLimiter/actions/workflows/ci.yml)
+[![CodeQL Security](https://github.com/Jeel-Vaishnav/AegisLimiter/actions/workflows/codeql.yml/badge.svg)](https://github.com/Jeel-Vaishnav/AegisLimiter/actions/workflows/codeql.yml)
+[![Release](https://img.shields.io/badge/Release-v1.0.0-10b981?style=flat-square&logo=github)](https://github.com/Jeel-Vaishnav/AegisLimiter/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://github.com/Jeel-Vaishnav/AegisLimiter/blob/main/LICENSE)
+[![Go Version](https://img.shields.io/badge/Go-1.22%2B-00ADD8?style=flat-square&logo=go)](https://golang.org)
+[![Architecture](https://img.shields.io/badge/Architecture-Distributed%20Systems-00f2fe?style=flat-square)](https://github.com/Jeel-Vaishnav/AegisLimiter)
+[![Throughput](https://img.shields.io/badge/Throughput-10%2C000%2B%20RPS%20%28%3C1ms%29-f43f5e?style=flat-square)](https://github.com/Jeel-Vaishnav/AegisLimiter)
 
 > **AegisLimiter** is a production-grade, distributed rate-limiting microservice designed for low-latency, high-concurrency cloud infrastructure. It protects downstream services from cascading failure, volumetric traffic spikes, abusive tenants, and DDoS attacks with **sub-millisecond decision times (< 0.1ms)** and sustained **10,000+ requests/second throughput**.
 
